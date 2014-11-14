@@ -3,6 +3,7 @@ package document;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,30 +41,30 @@ public class ProcessInstanceController {
         return repository.save(newProcessInstance);
     }
 
-    @RequestMapping(value = "/submit", method = RequestMethod.POST)
-    @ResponseBody
-    public ProcessInstance submit(@RequestBody ProcessInstance processInstance) {
-    	ProcessInstance existingProcessInstance = repository.findOne( processInstance.getId() );
-    	if ( existingProcessInstance == null ) {
-    		throw new IllegalArgumentException("Unknown processInstanceId");
-    	}
-    	existingProcessInstance = new WorkflowEngine().advanceDocument(existingProcessInstance);
-    	
-        return existingProcessInstance;
-    }
-
-    @RequestMapping(value = "/cancel", method = RequestMethod.POST)
-    @ResponseBody
-    public ProcessInstance cancel(@RequestBody ProcessInstance processInstance) {
-    	ProcessInstance existingProcessInstance = repository.findOne( processInstance.getId() );
-    	if ( existingProcessInstance == null ) {
-    		throw new IllegalArgumentException("Unknown processInstanceId");
-    	}
-
-    	existingProcessInstance.setState("CANCELLED");
-    	
-        return repository.save(existingProcessInstance);
-    }
+//    @RequestMapping(value = "/submit", method = RequestMethod.POST)
+//    @ResponseBody
+//    public ProcessInstance submit(@RequestBody ProcessInstance processInstance) {
+//    	ProcessInstance existingProcessInstance = repository.findOne( processInstance.getId() );
+//    	if ( existingProcessInstance == null ) {
+//    		throw new IllegalArgumentException("Unknown processInstanceId");
+//    	}
+//    	existingProcessInstance = new WorkflowEngine().advanceDocument(existingProcessInstance);
+//    	
+//        return existingProcessInstance;
+//    }
+//
+//    @RequestMapping(value = "/cancel", method = RequestMethod.POST)
+//    @ResponseBody
+//    public ProcessInstance cancel(@RequestBody ProcessInstance processInstance) {
+//    	ProcessInstance existingProcessInstance = repository.findOne( processInstance.getId() );
+//    	if ( existingProcessInstance == null ) {
+//    		throw new IllegalArgumentException("Unknown processInstanceId");
+//    	}
+//
+//    	existingProcessInstance.setState("CANCELLED");
+//    	
+//        return repository.save(existingProcessInstance);
+//    }
 
     @RequestMapping(value = "", method = RequestMethod.GET, params = "processId")
     @ResponseBody
@@ -80,7 +81,17 @@ public class ProcessInstanceController {
     @RequestMapping(value = "", method = RequestMethod.PUT)
     @ResponseBody
     public ProcessInstance put(@RequestBody ProcessInstance processInstance) {
-    	return repository.save(processInstance);
+    	ProcessInstance existingProcessInstance = repository.findOne( processInstance.getId() );
+    	if ( existingProcessInstance == null ) {
+    		throw new IllegalArgumentException("Unknown processInstanceId");
+    	}
+    	if ( StringUtils.equals( existingProcessInstance.getState(), "PREROUTE" )
+    			&& StringUtils.equals( processInstance.getState(), "ENROUTE") ) {
+    		existingProcessInstance.setSubmitDate( new Date() );
+    		existingProcessInstance = new WorkflowEngine().advanceDocument(existingProcessInstance);
+    	}
+    	
+    	return repository.save(existingProcessInstance);
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
