@@ -37,7 +37,7 @@ public class ProcessInstanceController {
     	
         return repository.save(newProcessInstance);
     }
-    
+
     @RequestMapping(value = "/submit", method = RequestMethod.POST)
     @ResponseBody
     public ProcessInstance submit(@RequestBody ProcessInstance processInstance) {
@@ -48,8 +48,21 @@ public class ProcessInstanceController {
 
     	existingProcessInstance.setState("ENROUTE");
     	existingProcessInstance.setSubmitDate( new Date() );    	
-    	// TODO: get initial activity ID
-    	existingProcessInstance.setCurrentActivityId("");
+//    	// TODO: get initial activity ID
+//    	existingProcessInstance.setCurrentActivityId("");
+    	
+        return repository.save(existingProcessInstance);
+    }
+
+    @RequestMapping(value = "/cancel", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessInstance cancel(@RequestBody ProcessInstance processInstance) {
+    	ProcessInstance existingProcessInstance = repository.findOne( processInstance.getId() );
+    	if ( existingProcessInstance == null ) {
+    		throw new IllegalArgumentException("Unknown processInstanceId");
+    	}
+
+    	existingProcessInstance.setState("CANCELLED");
     	
         return repository.save(existingProcessInstance);
     }
@@ -64,5 +77,11 @@ public class ProcessInstanceController {
     @ResponseBody
     public List<ProcessInstance> list() {
     	return repository.findAll();
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @ResponseBody
+    public void delete( @PathVariable String id ) {
+        repository.delete(id);
     }
 }
