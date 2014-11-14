@@ -78,10 +78,10 @@ public class ProcessInstanceController {
     	return repository.findAll();
     }
 
-    @RequestMapping(value = "", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     @ResponseBody
-    public ProcessInstance put(@RequestBody ProcessInstance processInstance) {
-    	ProcessInstance existingProcessInstance = repository.findOne( processInstance.getId() );
+    public ProcessInstance put(@PathVariable String id, @RequestBody ProcessInstance processInstance) {
+    	ProcessInstance existingProcessInstance = repository.findOne( id );
     	if ( existingProcessInstance == null ) {
     		throw new IllegalArgumentException("Unknown processInstanceId");
     	}
