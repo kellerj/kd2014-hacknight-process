@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import engine.WorkflowEngine;
+
 @RestController
 @RequestMapping(value = "/processInstances")
 public class ProcessInstanceController {
@@ -45,13 +47,9 @@ public class ProcessInstanceController {
     	if ( existingProcessInstance == null ) {
     		throw new IllegalArgumentException("Unknown processInstanceId");
     	}
-
-    	existingProcessInstance.setState("ENROUTE");
-    	existingProcessInstance.setSubmitDate( new Date() );    	
-//    	// TODO: get initial activity ID
-//    	existingProcessInstance.setCurrentActivityId("");
+    	existingProcessInstance = new WorkflowEngine().advanceDocument(existingProcessInstance);
     	
-        return repository.save(existingProcessInstance);
+        return existingProcessInstance;
     }
 
     @RequestMapping(value = "/cancel", method = RequestMethod.POST)
@@ -79,6 +77,12 @@ public class ProcessInstanceController {
     	return repository.findAll();
     }
 
+    @RequestMapping(value = "", method = RequestMethod.PUT)
+    @ResponseBody
+    public ProcessInstance put(@RequestBody ProcessInstance processInstance) {
+    	return repository.save(processInstance);
+    }
+    
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ResponseBody
     public void delete( @PathVariable String id ) {
